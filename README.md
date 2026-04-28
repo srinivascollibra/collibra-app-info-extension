@@ -1,13 +1,14 @@
 # Collibra App Info (Chrome extension)
 
-Fetches `{projectBase}/rest/2.0/application/info` and copies the environment **URL** and **DGC Version** in one click for Jira/bug templates. Toolbar and popup use the [collibra.com](https://www.collibra.com/) favicon, resized into `icons/` (for public store listing, confirm brand use with your organization).
+Fetches `{projectBase}/rest/2.0/application/info` and copies the environment **URL** and **DGC Version** in one click for Jira/bug templates. Toolbar and popup use the [collibra.com](https://www.collibra.com/) favicon, resized into `icons/`
 
 ## Load unpacked in Chrome
 
-1. Open `chrome://extensions`.
-2. Turn on **Developer mode** (top right).
-3. Click **Load unpacked** and select this folder: `chrome-extension-app-info`.
-4. If Chrome lists **Site access** or host permissions, allow access for the sites you test (this extension uses broad `https://*/*` and `http://*/*` for internal and local test URLs—narrow in `manifest.json` if your org requires it).
+1. Clone or download this repository.
+2. Open `chrome://extensions`.
+3. Turn on **Developer mode** (top right).
+4. Click **Load unpacked** and select this folder: `chrome-extension-app-info`.
+5. If Chrome lists **Site access** or host permissions, allow access for the sites you test (this extension uses broad `https://*/*` and `http://*/*` for internal and local test URLs—narrow in `manifest.json` if your org requires it).
 
 ## How to use
 
