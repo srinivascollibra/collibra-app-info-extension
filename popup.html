@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Collibra App Info</title>
+    <style>
+      :root {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        font-size: 14px;
+        color: #1a1a1a;
+      }
+      body {
+        margin: 0;
+        width: 320px;
+        padding: 12px;
+        box-sizing: border-box;
+      }
+      .ext-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .ext-header img {
+        flex-shrink: 0;
+        display: block;
+      }
+      .ext-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #001f5b;
+        line-height: 1.2;
+      }
+      label {
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 600;
+        font-size: 12px;
+        color: #444;
+      }
+      #projectBase {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        margin-bottom: 10px;
+      }
+      #projectBase:focus {
+        outline: 2px solid #2563eb;
+        outline-offset: 1px;
+      }
+      #hint {
+        font-size: 11px;
+        color: #666;
+        margin: 0 0 10px;
+        line-height: 1.35;
+      }
+      #copyBtn {
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+        background: #2563eb;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      #copyBtn:hover {
+        background: #1d4ed8;
+      }
+      #copyBtn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      #status {
+        margin-top: 10px;
+        font-size: 12px;
+        line-height: 1.4;
+        min-height: 2.8em;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      #status.error {
+        color: #b91c1c;
+      }
+      #status.success {
+        color: #15803d;
+      }
+      #preview {
+        margin-top: 8px;
+        padding: 8px;
+        background: #f4f4f5;
+        border-radius: 6px;
+        font-size: 11px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+        white-space: pre-wrap;
+        word-break: break-all;
+        max-height: 120px;
+        overflow-y: auto;
+        display: none;
+      }
+      #preview.visible {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="ext-header">
+      <img
+        src="icons/icon48.png"
+        width="32"
+        height="32"
+        alt="Collibra"
+      />
+      <h1 class="ext-title">Collibra App Info</h1>
+    </div>
+    <label for="projectBase">Project base URL (optional)</label>
+    <input
+      id="projectBase"
+      type="url"
+      placeholder="Leave empty to use active tab origin"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <p id="hint">
+      If empty, uses the current tab’s origin and fetches
+      <code>/rest/2.0/application/info</code>.
+    </p>
+    <button type="button" id="copyBtn">Copy URL &amp; DGC version</button>
+    <div id="status" role="status" aria-live="polite"></div>
+    <pre id="preview" aria-hidden="true"></pre>
+    <script src="popup.js"></script>
+  </body>
+</html>
