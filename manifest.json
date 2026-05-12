@@ -19,6 +19,10 @@
       "128": "icons/icon128.png"
     }
   },
-  "permissions": ["tabs"],
-  "host_permissions": ["https://*/*", "http://*/*"]
+  "minimum_chrome_version": "98",
+  "permissions": ["tabs", "clipboardWrite"],
+  "host_permissions": [
+    "https://*.collibra.com/*",
+    "https://*.collibra-ops.com/*"
+  ]
 }

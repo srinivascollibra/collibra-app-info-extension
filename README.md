@@ -1,37 +1,53 @@
-# Collibra App Info (Chrome extension)
+# Collibra Application Information — Chrome Extension
 
-Fetches `{projectBase}/rest/2.0/application/info` and copies the environment **URL** and **DGC Version** in one click for Jira/bug templates. Toolbar and popup use the [collibra.com](https://www.collibra.com/) favicon, resized into `icons/`
+A lightweight Chrome extension for Collibra employees. Opens on any Collibra environment tab and copies the environment URL and DGC version in one click — ready to paste into a Jira ticket or bug report.
 
-## Load unpacked in Chrome
+## Requirements
+
+- Chrome 98 or later
+
+## Install (load unpacked)
 
 1. Clone or download this repository.
 2. Open `chrome://extensions`.
-3. Turn on **Developer mode** (top right).
-4. Click **Load unpacked** and select this folder: `chrome-extension-app-info`.
-5. If Chrome lists **Site access** or host permissions, allow access for the sites you test (this extension uses broad `https://*/*` and `http://*/*` for internal and local test URLs—narrow in `manifest.json` if your org requires it).
+3. Enable **Developer mode** (toggle in the top-right corner).
+4. Click **Load unpacked** and select the repository folder.
+5. The **Collibra App Info** icon will appear in your Chrome toolbar.
 
 ## How to use
 
-1. Open a tab on your project (any path on the same origin), or stay on any tab if you will paste a base URL.
-2. Click the **Collibra App Info** extension icon.
-3. Optional: type a **Project base URL** (e.g. `https://ai-model-registry.dev-aws.cp.collibra-ops.com` or `https://host/myapp` with a path prefix). If you leave it empty, the **active tab’s origin** is used.
-4. Click **Copy URL & DGC version**. The clipboard will contain:
+### On a Collibra environment tab
 
-   ```text
-   URL: <baseUrl from JSON>
-   DGC Version: <version.fullVersion from JSON>
-   ```
+Open any tab on a Collibra instance (e.g. `https://your-instance.collibra.com`). Click the extension icon — the DGC version and URL are fetched and displayed automatically.
 
-## Manual verification (optional)
+Two copy actions are available:
 
-With network access, you can confirm the same JSON in a shell:
+| Button | What it copies |
+| --- | --- |
+| Clipboard icon | `URL: …` and `DGC Version: …` as plain text |
+| **Copy for Jira** | URL, Version, Full Version, and Build Number as an HTML table — pastes directly as a formatted table in Jira |
+
+## Supported domains
+
+The extension auto-detects and fetches version info only for:
+
+- `*.collibra.com`
+- `*.collibra-ops.com`
+
+## Dark mode
+
+The extension respects the operating system's appearance setting and switches between light and dark themes automatically.
+
+## Privacy
+
+The extension activates only when you open the popup and click a button. It does not read page content, inject scripts, or send any data externally. The only network request made is a `GET` to `/rest/2.0/application/info` on the Collibra instance, with no credentials attached.
+
+## Verification
+
+To manually verify the API response in a terminal:
 
 ```bash
-curl -sS "https://ai-model-registry.dev-aws.cp.collibra-ops.com/rest/2.0/application/info" | head -c 500
+curl -sS "https://your-instance.collibra.com/rest/2.0/application/info" | head -c 500
 ```
 
-The copied lines should match `baseUrl` and `version.fullVersion` in that response.
-
-## Privacy note
-
-The extension only runs when you open the popup and click the button. It does not read page content; it only uses the active tab’s URL to derive the origin when the optional field is empty, or uses your typed base URL.
+The copied values match `baseUrl` and `version.fullVersion` (plus `version.displayVersion` and `version.buildNumber` for the Jira format).

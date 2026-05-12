@@ -1,12 +1,16 @@
-/**
- * Builds the Collibra-style application info URL from a project base.
- * Example: https://host/myapp/ → https://host/myapp/rest/2.0/application/info
- */
-function buildInfoUrl(projectBase) {
-  const trimmed = projectBase.trim().replace(/\/+$/, "");
-  if (!trimmed) {
-    throw new Error("Project base URL is empty.");
+function isCollibraOrigin(origin) {
+  try {
+    const { hostname } = new URL(origin);
+    // must end with .collibra.com or .collibra-ops.com (or be the apex)
+    return /(?:^|\.)collibra(?:\.com|-ops\.com)$/.test(hostname.toLowerCase());
+  } catch {
+    return false;
   }
+}
+
+function buildInfoUrl(base) {
+  const trimmed = base.trim().replace(/\/+$/, "");
+  if (!trimmed) throw new Error("URL is empty.");
   let parsed;
   try {
     parsed = new URL(trimmed);
@@ -19,112 +23,172 @@ function buildInfoUrl(projectBase) {
   return `${trimmed}/rest/2.0/application/info`;
 }
 
-/**
- * Gets http(s) origin from the active tab, or null if not applicable.
- */
 async function getActiveTabOrigin() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab?.url) {
-    return null;
-  }
+  if (!tab?.url) return null;
   try {
     const u = new URL(tab.url);
-    if (u.protocol !== "http:" && u.protocol !== "https:") {
-      return null;
-    }
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
     return u.origin;
   } catch {
     return null;
   }
 }
 
-/**
- * Resolves which project base to use: manual input wins; else active tab origin.
- */
-async function resolveProjectBase(manualInput) {
-  const manual = manualInput.trim();
-  if (manual) {
-    return manual;
+async function fetchAppInfo(base) {
+  const infoUrl = buildInfoUrl(base);
+  const res = await fetch(infoUrl, { method: "GET", credentials: "omit" });
+  if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText} — ${infoUrl}`);
+  let data;
+  try {
+    data = JSON.parse(await res.text());
+  } catch {
+    throw new Error("Response is not valid JSON.");
   }
-  const origin = await getActiveTabOrigin();
-  if (!origin) {
-    throw new Error(
-      "No project base entered and the active tab is not an http(s) page. Paste a base URL or open your app in a tab."
-    );
+  if (typeof data?.baseUrl !== "string" || !data.baseUrl) {
+    throw new Error('JSON missing "baseUrl".');
   }
-  return origin;
+  if (typeof data?.version?.fullVersion !== "string" || !data.version.fullVersion) {
+    throw new Error('JSON missing "version.fullVersion".');
+  }
+  return data;
 }
 
-/**
- * One-click copy for bug reports: environment URL and DGC version.
- */
-function formatClipboardText(baseUrl, fullVersion) {
-  return `URL: ${baseUrl}\nDGC Version: ${fullVersion}`;
+function formatSimpleText(data) {
+  return `URL: ${data.baseUrl}\nDGC Version: ${data.version.fullVersion}`;
 }
 
-function setStatus(el, message, kind) {
-  el.textContent = message;
-  el.className = kind || "";
+function formatJiraPlain(data) {
+  const v = data.version;
+  const lines = [`URL: ${data.baseUrl}`];
+  if (v.displayVersion) lines.push(`Version: ${v.displayVersion}`);
+  lines.push(`Full Version: ${v.fullVersion}`);
+  if (v.buildNumber != null) lines.push(`Build: ${v.buildNumber}`);
+  return lines.join("\n");
 }
 
-function setPreview(pre, text, visible) {
-  pre.textContent = text;
-  pre.classList.toggle("visible", visible);
-  pre.setAttribute("aria-hidden", visible ? "false" : "true");
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+function formatJiraHtml(data) {
+  const v = data.version;
+  const rows = [["URL", data.baseUrl]];
+  if (v.displayVersion) rows.push(["Version", v.displayVersion]);
+  rows.push(["Full Version", v.fullVersion]);
+  if (v.buildNumber != null) rows.push(["Build", String(v.buildNumber)]);
+  const rowsHtml = rows
+    .map(([label, value]) => `<tr><th><strong>${escapeHtml(label)}</strong></th><td>${escapeHtml(value)}</td></tr>`)
+    .join("");
+  return `<table><tbody>${rowsHtml}</tbody></table>`;
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
   const projectBaseInput = document.getElementById("projectBase");
-  const copyBtn = document.getElementById("copyBtn");
+  const fetchBtn = document.getElementById("fetchBtn");
+  const copySimpleBtn = document.getElementById("copySimpleBtn");
+  const copyJiraBtn = document.getElementById("copyJiraBtn");
   const statusEl = document.getElementById("status");
   const previewEl = document.getElementById("preview");
+  const autoInfoPanel = document.getElementById("autoInfoPanel");
+  const notCollibra = document.getElementById("notCollibra");
+  const loadingEl = document.getElementById("loading");
+  const infoUrlEl = document.getElementById("infoUrl");
+  const infoDgcVersionEl = document.getElementById("infoDgcVersion");
 
-  copyBtn.addEventListener("click", async () => {
-    setStatus(statusEl, "");
-    setPreview(previewEl, "", false);
-    copyBtn.disabled = true;
+  let currentData = null;
 
+  function setStatus(msg, kind) {
+    statusEl.textContent = msg;
+    statusEl.className = kind || "";
+  }
+
+  function setPreview(text, visible) {
+    previewEl.textContent = text;
+    previewEl.classList.toggle("visible", visible);
+    previewEl.setAttribute("aria-hidden", visible ? "false" : "true");
+  }
+
+  function showInfo(data) {
+    currentData = data;
+    infoUrlEl.textContent = data.baseUrl;
+    infoDgcVersionEl.textContent = data.version.fullVersion;
+    autoInfoPanel.style.display = "block";
+  }
+
+  function hideInfo() {
+    autoInfoPanel.style.display = "none";
+    currentData = null;
+  }
+
+  // Auto-fetch on open if on a Collibra instance
+  const origin = await getActiveTabOrigin();
+  if (origin && isCollibraOrigin(origin)) {
+    loadingEl.style.display = "block";
     try {
-      const projectBase = await resolveProjectBase(projectBaseInput.value);
-      const infoUrl = buildInfoUrl(projectBase);
-
-      const res = await fetch(infoUrl, { method: "GET" });
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} ${res.statusText} — ${infoUrl}`);
-      }
-
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        throw new Error("Response is not valid JSON.");
-      }
-
-      const baseUrl = data?.baseUrl;
-      const fullVersion = data?.version?.fullVersion;
-
-      if (typeof baseUrl !== "string" || !baseUrl) {
-        throw new Error('JSON missing string "baseUrl" (URL).');
-      }
-      if (typeof fullVersion !== "string" || !fullVersion) {
-        throw new Error('JSON missing "version.fullVersion" (DGC Version).');
-      }
-
-      const clipboardText = formatClipboardText(baseUrl, fullVersion);
-      await navigator.clipboard.writeText(clipboardText);
-
-      setStatus(
-        statusEl,
-        "Copied to clipboard. Paste into your bug report.",
-        "success"
-      );
-      setPreview(previewEl, clipboardText, true);
+      showInfo(await fetchAppInfo(origin));
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setStatus(statusEl, msg, "error");
+      setStatus(err instanceof Error ? err.message : String(err), "error");
     } finally {
-      copyBtn.disabled = false;
+      loadingEl.style.display = "none";
+    }
+  } else if (origin) {
+    notCollibra.style.display = "block";
+  }
+
+  // Manual fetch via override URL or active tab
+  fetchBtn.addEventListener("click", async () => {
+    setStatus("");
+    setPreview("", false);
+    fetchBtn.disabled = true;
+    loadingEl.style.display = "block";
+    hideInfo();
+    try {
+      const base = projectBaseInput.value.trim() || (await getActiveTabOrigin());
+      if (!base) throw new Error("No URL entered and active tab is not http(s).");
+      showInfo(await fetchAppInfo(base));
+      setStatus("Fetched successfully.", "success");
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : String(err), "error");
+    } finally {
+      fetchBtn.disabled = false;
+      loadingEl.style.display = "none";
+    }
+  });
+
+  // Small icon: copy URL + DGC Version
+  copySimpleBtn.addEventListener("click", async () => {
+    if (!currentData) return;
+    try {
+      const text = formatSimpleText(currentData);
+      await navigator.clipboard.writeText(text);
+      setStatus("Copied URL & DGC version.", "success");
+      setPreview(text, true);
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : String(err), "error");
+    }
+  });
+
+  // Copy for Jira: HTML table (pastes as table in Jira) + plain text fallback
+  copyJiraBtn.addEventListener("click", async () => {
+    if (!currentData) return;
+    try {
+      const html = formatJiraHtml(currentData);
+      const plain = formatJiraPlain(currentData);
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/html": new Blob([html], { type: "text/html" }),
+          "text/plain": new Blob([plain], { type: "text/plain" }),
+        }),
+      ]);
+      setStatus("Copied for Jira.", "success");
+      setPreview(plain, true);
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : String(err), "error");
     }
   });
 });
