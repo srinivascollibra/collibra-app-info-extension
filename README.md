@@ -12,7 +12,7 @@ A lightweight Chrome extension for Collibra employees. Opens on any Collibra env
 2. Open `chrome://extensions`.
 3. Enable **Developer mode** (toggle in the top-right corner).
 4. Click **Load unpacked** and select the repository folder.
-5. The **Collibra App Info** icon will appear in your Chrome toolbar.
+5. The **Collibra App Info** icon will appear in your Chrome toolbar. Look for the blue **INFO** badge on the icon — that's how you tell it apart from other Collibra extensions that share the same logo.
 
 ## How to use
 
@@ -33,6 +33,7 @@ The extension auto-detects and fetches version info only for:
 
 - `*.collibra.com`
 - `*.collibra-ops.com`
+- `*.collibra.dev`
 
 ## Dark mode
 
