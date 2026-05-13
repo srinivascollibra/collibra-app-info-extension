@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Collibra App Info",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Collibra helper: copy environment URL and DGC version from /rest/2.0/application/info for bug reports.",
   "icons": {
     "16": "icons/icon16.png",
@@ -19,10 +19,14 @@
       "128": "icons/icon128.png"
     }
   },
+  "background": {
+    "service_worker": "background.js"
+  },
   "minimum_chrome_version": "98",
   "permissions": ["tabs", "clipboardWrite"],
   "host_permissions": [
     "https://*.collibra.com/*",
-    "https://*.collibra-ops.com/*"
+    "https://*.collibra-ops.com/*",
+    "https://*.collibra.dev/*"
   ]
 }

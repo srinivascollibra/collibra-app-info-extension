@@ -1,8 +1,8 @@
 function isCollibraOrigin(origin) {
   try {
     const { hostname } = new URL(origin);
-    // must end with .collibra.com or .collibra-ops.com (or be the apex)
-    return /(?:^|\.)collibra(?:\.com|-ops\.com)$/.test(hostname.toLowerCase());
+    // must end with .collibra.com, .collibra-ops.com, or .collibra.dev (or be the apex)
+    return /(?:^|\.)collibra(?:\.com|-ops\.com|\.dev)$/.test(hostname.toLowerCase());
   } catch {
     return false;
   }
