@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.2] — 2026-05-13
+
+### Added
+- Toolbar badge "INFO" overlay (blue background) to visually distinguish this extension from other Collibra browser extensions sharing the same logo
+- Support for `*.collibra.dev` environments (e.g. `infra-main.collibra.dev`, `infra-release-*.collibra.dev`)
+- Background service worker (`background.js`) that applies the badge on install and startup
+
+### Changed
+- `isCollibraOrigin` regex extended to recognise `.collibra.dev` alongside `.collibra.com` and `.collibra-ops.com`
+- `host_permissions` extended to include `https://*.collibra.dev/*`
+
+---
+
 ## [1.0.1] — 2026-05-02
 
 ### Added
