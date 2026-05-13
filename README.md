@@ -34,6 +34,8 @@ The extension auto-detects and fetches version info only for:
 - `*.collibra.com`
 - `*.collibra-ops.com`
 - `*.collibra.dev`
+- `*.collibra.tech`
+
 
 ## Dark mode
 

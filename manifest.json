@@ -27,6 +27,7 @@
   "host_permissions": [
     "https://*.collibra.com/*",
     "https://*.collibra-ops.com/*",
-    "https://*.collibra.dev/*"
+    "https://*.collibra.dev/*",
+    "https://*.collibra.tech/*"
   ]
 }
