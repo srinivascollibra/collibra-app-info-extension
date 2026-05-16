@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- Support for `*.collibra.tech` environments — auto-detected and fetched on popup open
+
+### Changed
+- `isCollibraOrigin` regex extended to recognise `.collibra.tech`
+- Jira HTML table: first column (`<th>`) now uses `width: auto` to fit label text instead of a fixed width
+- Footer updated to display version and last-updated date (`v1.0.2 (May 16, 2026)`)
+
+---
+
 ## [1.0.2] — 2026-05-13
 
 ### Added

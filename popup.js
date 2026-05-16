@@ -1,8 +1,8 @@
 function isCollibraOrigin(origin) {
   try {
     const { hostname } = new URL(origin);
-    // must end with .collibra.com, .collibra-ops.com, or .collibra.dev (or be the apex)
-    return /(?:^|\.)collibra(?:\.com|-ops\.com|\.dev)$/.test(hostname.toLowerCase());
+    // must end with .collibra.com, .collibra-ops.com, .collibra.dev, or .collibra.tech (or be the apex)
+    return /(?:^|\.)collibra(?:\.com|-ops\.com|\.dev|\.tech)$/.test(hostname.toLowerCase());
   } catch {
     return false;
   }
@@ -82,9 +82,9 @@ function formatJiraHtml(data) {
   rows.push(["Full Version", v.fullVersion]);
   if (v.buildNumber != null) rows.push(["Build", String(v.buildNumber)]);
   const rowsHtml = rows
-    .map(([label, value]) => `<tr><th><strong>${escapeHtml(label)}</strong></th><td>${escapeHtml(value)}</td></tr>`)
+    .map(([label, value]) => `<tr><th style="width: auto;"><strong>${escapeHtml(label)}</strong></th><td>${escapeHtml(value)}</td></tr>`)
     .join("");
-  return `<table><tbody>${rowsHtml}</tbody></table>`;
+  return `<table style="width: 100%;"><tbody>${rowsHtml}</tbody></table>`;
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
